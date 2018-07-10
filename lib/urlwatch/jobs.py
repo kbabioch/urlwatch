@@ -290,6 +290,7 @@ class GitHubJob(Job):
 
     __kind__ = 'github'
     __required__ = ('repo',)
+    __optional__ = ('token',)
 
     __API__ = 'https://api.github.com'
 
@@ -297,10 +298,19 @@ class GitHubJob(Job):
         return '{} (GitHub)'.format(self.repo)
 
     def retrieve(self, job_state):
-        config = job_state.config_storage.config
         headers = {}
-        if job_state.config_storage.config['github']['token']:
-            headers['Authorization'] = 'token {}'.format(config['github']['token'])
+        config = job_state.config_storage.config
+        token = ''
+
+        # Use token if available (defined as attribute takes precedence over global configuration)
+        if self.token:
+            token = self.token
+        elif job_state.config_storage.config['github']['token']:
+            token = config['github']['token']
+
+        if token:
+            headers['Authorization'] = 'token {}'.format(token)
+
         response = requests.get('{}/repos/{}/releases'.format(self.__API__, self.repo), headers=headers)
         response.raise_for_status()
         return response.text
