@@ -107,6 +107,10 @@ DEFAULT_CONFIG = {
             'subject': '{count} changes: {jobs}'
         },
     },
+
+    'github': {
+        'token': '',
+    }
 }
 
 

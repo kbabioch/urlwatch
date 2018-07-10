@@ -283,3 +283,24 @@ class BrowserJob(Job):
         session = HTMLSession()
         response = session.get(self.navigate)
         return response.html.html
+
+
+class GitHubJob(Job):
+    """Retrieve information about commits, tags and releases from a GitHub repository"""
+
+    __kind__ = 'github'
+    __required__ = ('repo',)
+
+    __API__ = 'https://api.github.com'
+
+    def get_location(self):
+        return '{} (GitHub)'.format(self.repo)
+
+    def retrieve(self, job_state):
+        config = job_state.config_storage.config
+        headers = {}
+        if job_state.config_storage.config['github']['token']:
+            headers['Authorization'] = 'token {}'.format(config['github']['token'])
+        response = requests.get('{}/repos/{}/releases'.format(self.__API__, self.repo), headers=headers)
+        response.raise_for_status()
+        return response.text
