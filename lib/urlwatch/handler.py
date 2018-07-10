@@ -41,8 +41,9 @@ logger = logging.getLogger(__name__)
 
 
 class JobState(object):
-    def __init__(self, cache_storage, job):
+    def __init__(self, cache_storage, config_storage, job):
         self.cache_storage = cache_storage
+        self.config_storage = config_storage
         self.job = job
         self.verb = None
         self.old_data = None

@@ -52,12 +52,13 @@ def run_parallel(func, items):
 
 def run_jobs(urlwatcher):
     cache_storage = urlwatcher.cache_storage
+    config_storage = urlwatcher.config_storage
     jobs = urlwatcher.jobs
     report = urlwatcher.report
 
     logger.debug('Processing %d jobs', len(jobs))
     for job_state in run_parallel(lambda job_state: job_state.process(),
-                                  (JobState(cache_storage, job) for job in jobs)):
+                                  (JobState(cache_storage, config_storage, job) for job in jobs)):
         logger.debug('Job finished: %s', job_state.job)
 
         if not job_state.job.max_tries:
