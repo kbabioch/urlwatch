@@ -297,7 +297,7 @@ class GitHubJob(Job):
 
     __kind__ = 'github'
     __required__ = ('repo',)
-    __optional__ = ('token',)
+    __optional__ = ('token', 'ignore_cached')
 
     __API__ = 'https://api.github.com'
 
@@ -318,6 +318,21 @@ class GitHubJob(Job):
         if token:
             headers['Authorization'] = 'token {}'.format(token)
 
+        # Set ETag if available (do not request fresh copy)
+        if job_state.etag is not None:
+            headers['If-None-Match'] = job_state.etag
+
+        # Ignore cached result, request fresh copy
+        if self.ignore_cached:
+            headers['If-None-Match'] = None
+
         response = requests.get('{}/repos/{}/releases'.format(self.__API__, self.repo), headers=headers)
         response.raise_for_status()
+
+        if response.status_code == 304:
+            raise NotModifiedError()
+
+        # Save ETag from response (will be stored in cache)
+        job_state.etag = response.headers.get('ETag')
+
         return response.text
